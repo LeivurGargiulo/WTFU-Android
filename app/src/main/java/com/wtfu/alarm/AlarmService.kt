@@ -5,9 +5,8 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.content.Context
 import android.content.Intent
-import android.os.Build
+import android.media.RingtoneManager
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
@@ -16,12 +15,12 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.wtfu.R
 import com.wtfu.data.AlarmPreferences
+import com.wtfu.data.AlarmSettings
 import com.wtfu.ui.AlarmRingingActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -56,6 +55,14 @@ class AlarmService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "AlarmService started")
 
+        val settings = intent?.getParcelableExtra<AlarmSettings>("ALARM_SETTINGS")
+
+        if (settings == null) {
+            Log.e(TAG, "AlarmSettings not found in intent, stopping service.")
+            stopSelf()
+            return START_NOT_STICKY
+        }
+
         // Acquire WakeLock to keep CPU on
         acquireWakeLock()
 
@@ -68,13 +75,20 @@ class AlarmService : Service() {
 
         // Load settings and start alarm playback
         serviceScope.launch {
-            val preferences = AlarmPreferences(applicationContext)
-            val settings = preferences.alarmSettingsFlow.first()
-
             // Start alarm playback
-            val soundResId = if (settings.soundResId != 0) settings.soundResId else R.raw.alarm_sound
-            alarmPlayer = AlarmPlayer(applicationContext, soundResId, settings.volumePercent)
-            alarmPlayer?.start()
+            val soundUri = RingtoneManager.getActualDefaultRingtoneUri(
+                applicationContext,
+                RingtoneManager.TYPE_ALARM
+            )
+            if (soundUri == null) {
+                Log.e(TAG, "Could not find default alarm sound.")
+                // As a fallback, you could try to use a notification sound or a raw resource if you add one
+                // For now, we'''ll just log the error and the alarm will be silent.
+            } else {
+                val volume = settings.volumePercent
+                alarmPlayer = AlarmPlayer(applicationContext, soundUri, volume)
+                alarmPlayer?.start()
+            }
 
             // Schedule auto-stop if enabled
             if (settings.autoStopEnabled && settings.ringDurationMinutes > 0) {
@@ -82,6 +96,7 @@ class AlarmService : Service() {
             }
 
             // Mark alarm as inactive after triggering
+            val preferences = AlarmPreferences(applicationContext)
             preferences.setAlarmActive(false)
         }
 
@@ -110,7 +125,7 @@ class AlarmService : Service() {
 
     private fun acquireWakeLock() {
         try {
-            val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+            val powerManager = getSystemService(POWER_SERVICE) as PowerManager
             wakeLock = powerManager.newWakeLock(
                 PowerManager.PARTIAL_WAKE_LOCK,
                 "WTFU::AlarmWakeLock"
@@ -154,8 +169,9 @@ class AlarmService : Service() {
 
     private fun createNotification(): Notification {
         val intent = Intent(this, AlarmRingingActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         }
+
 
         val pendingIntent = PendingIntent.getActivity(
             this,

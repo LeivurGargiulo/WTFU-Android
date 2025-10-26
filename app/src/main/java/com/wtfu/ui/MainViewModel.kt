@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import java.util.concurrent.TimeUnit
 
 /**
  * ViewModel for the main screen.
@@ -59,9 +60,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.value = _uiState.value.copy(minute = minute)
     }
 
-    fun onRingDurationChanged(duration: String) {
-        val durationInt = duration.toIntOrNull() ?: 5
-        _uiState.value = _uiState.value.copy(ringDurationMinutes = durationInt.coerceIn(1, 60))
+    fun onRingDurationChanged(duration: Float) {
+        _uiState.value = _uiState.value.copy(ringDurationMinutes = duration.toInt().coerceIn(1, 60))
     }
 
     fun onVolumeChanged(volume: Float) {
@@ -108,7 +108,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _uiState.value = _uiState.value.copy(
                 isAlarmActive = success,
                 statusMessage = if (success) {
-                    "Alarm set for ${formatTime(state.hour, state.minute)}"
+                    val timeDiff = calendar.timeInMillis - System.currentTimeMillis()
+                    val hours = TimeUnit.MILLISECONDS.toHours(timeDiff)
+                    val minutes = TimeUnit.MILLISECONDS.toMinutes(timeDiff) % 60
+                    "Alarm will ring in $hours hours, $minutes minutes"
                 } else {
                     "Failed to set alarm. Check permissions."
                 }

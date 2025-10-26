@@ -182,18 +182,12 @@ Before relying on WTFU for important wake-ups:
    - Android Studio will automatically sync Gradle files
    - Wait for dependencies to download
 
-4. **Important**: Add an alarm sound file:
-   - Place a sound file (MP3, OGG, or WAV) at: `app/src/main/res/raw/alarm_sound.mp3`
-   - You can use any loud, attention-grabbing sound
-   - Recommended: 5-10 seconds of looping-friendly audio
-   - You can download free alarm sounds from sites like freesound.org or use your own
-
-5. Build the APK:
+4. Build the APK:
    ```bash
    ./gradlew assembleDebug
    ```
 
-6. Install on device:
+5. Install on device:
    ```bash
    ./gradlew installDebug
    ```
@@ -224,7 +218,6 @@ WTFU/
 │   │   │       ├── AlarmService.kt
 │   │   │       └── AlarmPlayer.kt
 │   │   ├── res/
-│   │   │   ├── raw/alarm_sound.mp3 (YOU MUST ADD THIS)
 │   │   │   ├── drawable/ic_alarm.xml
 │   │   │   ├── values/strings.xml
 │   │   │   └── xml/backup_rules.xml
@@ -244,7 +237,6 @@ WTFU/
 3. **OEM Restrictions**: Some manufacturers may still kill the app despite all optimizations
 4. **No Cloud Sync**: Alarm settings are stored locally only
 5. **Single Alarm**: Currently supports only one alarm at a time
-6. **Alarm Sound Required**: You must provide your own alarm sound file (not included in the repository)
 
 ## Troubleshooting
 
@@ -266,15 +258,12 @@ WTFU/
 
 1. Check volume slider in WTFU is not at 0%
 2. Verify device alarm volume is not muted
-3. Ensure alarm sound file exists at `app/src/main/res/raw/alarm_sound.mp3`
-4. Test with a different sound file
 
 ### App crashes on alarm trigger
 
 1. Check LogCat for error messages
 2. Verify all permissions are granted
-3. Ensure alarm sound file is present and valid
-4. Try reinstalling the app
+3. Try reinstalling the app
 
 ## Contributing
 
@@ -302,7 +291,6 @@ For issues, please check:
 2. Android version compatibility (Min SDK 26)
 3. All permissions are granted
 4. Battery optimization is disabled
-5. Alarm sound file has been added to `app/src/main/res/raw/`
 
 ---
 

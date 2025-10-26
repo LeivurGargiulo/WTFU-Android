@@ -88,13 +88,12 @@ fun MainScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("Ring Duration (minutes)", style = MaterialTheme.typography.titleMedium)
-                    OutlinedTextField(
-                        value = uiState.ringDurationMinutes.toString(),
+                    Text("Ring Duration: ${uiState.ringDurationMinutes} minutes", style = MaterialTheme.typography.titleMedium)
+                    Slider(
+                        value = uiState.ringDurationMinutes.toFloat(),
                         onValueChange = viewModel::onRingDurationChanged,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        valueRange = 1f..60f,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }

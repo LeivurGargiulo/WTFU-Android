@@ -36,7 +36,7 @@ class AlarmScheduler(private val context: Context) {
 
         try {
             val intent = Intent(context, AlarmReceiver::class.java).apply {
-                putExtra("ALARM_TIME", settings.timeInMillis)
+                putExtra("ALARM_SETTINGS", settings)
             }
 
             val pendingIntent = PendingIntent.getBroadcast(

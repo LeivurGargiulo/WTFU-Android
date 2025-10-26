@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.wtfu.data.AlarmPreferences
-import com.wtfu.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -24,7 +23,7 @@ class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED ||
             intent.action == "android.intent.action.QUICKBOOT_POWERON") {
-            
+
             Log.d(TAG, "Boot completed, checking if alarm needs rescheduling")
 
             val preferences = AlarmPreferences(context)
@@ -38,14 +37,8 @@ class BootReceiver : BroadcastReceiver() {
                     val settings = preferences.alarmSettingsFlow.first()
 
                     if (settings.rescheduleOnBoot && settings.isActive && settings.timeInMillis > System.currentTimeMillis()) {
-                        // Re-schedule the alarm with default sound if not set
-                        val settingsWithSound = if (settings.soundResId == 0) {
-                            settings.copy(soundResId = R.raw.alarm_sound)
-                        } else {
-                            settings
-                        }
-                        
-                        scheduler.scheduleAlarm(settingsWithSound)
+                        // Re-schedule the alarm
+                        scheduler.scheduleAlarm(settings)
                         Log.d(TAG, "Alarm rescheduled after boot")
                     }
                 } finally {
